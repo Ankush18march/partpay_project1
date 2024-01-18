@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="en">
+  <head>
+<!-- Required meta tags -->
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+<!-- Bootstrap CSS -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<title>Hello, world!</title>
+  </head>
+  <body>
+  <!-- Modal -->
+<div class="modal fade" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="exampleModalLabel">Salary Form</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <div id="paste">
+
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          <button type="button" class="btn btn-primary">Save changes</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  <button type="button" onclick="logout()" class="btn btn-warning">Logout</button>
+  <table class="table">
+    <thead class="thead-light">
+      <tr>
+        <th scope="col">Employee</th>
+        <th scope="col">TotalAmount</th>
+        <th scope="col">Due</th>
+        <th scope="col">Paid</th>
+        <th scope="col">Action</th>
+      </tr>
+    </thead>
+    <tbody id="tbody">
+      
+      
+    </tbody>
+  </table>
+  
+  <script>
+let tbody=document.getElementById('tbody')
+
+  fetch('/home/read')
+    .then((res)=>res.json())
+    .then((data)=>{ 
+    console.log(data)
+  for(let i=0;i<data.data.length;i++){
+      let html=` <tr>
+      <th scope="row">${data.data[i].FirstName}</th>
+      <td>${data.data[i].TotalAmount}</td>
+      <td>${data.data[i].DueAmount}</td>
+      <td>${data.data[i].PaidAmount}</td>
+      <td><button type="button" onclick="payment(${data.data[i].Id})" class="btn btn-primary" data-toggle="modal" data-target="#exampleModal">Pay</button></td>
+    </tr>`
+    tbody.innerHTML+=html
+    }
+
+})
+
+    function payment(id) {
+    console.log(id);
+    fetch(`/home/pay/${id}`)
+    .then((res)=>res.json())
+    .then((data)=>{ 
+    console.log(data)
+      
+    for(let i=0;i<data.data.length;i++){
+          let html =` 
+          
+  <form id="myform">
+    <div class="form-group">
+    <label for="exampleInputPassword1">Emplyoee</label>
+    <input type="text" class="form-control" name="name" value="${data.data[i].FirstName}" id="exampleInputPassword1" placeholder="text">
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Total Amout</label>
+    <input type="text" class="form-control" name="amount" value="${data.data[i].TotalAmount}" id="exampleInputPassword1" placeholder="text"disabled>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Due</label>
+    <input type="text" class="form-control" id="d" name="due" value="${data.data[i].DueAmount}" id="exampleInputPassword1" placeholder="text"disabled>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Paid</label>
+    <input type="text" class="form-control" name="paid" value="${data.data[i].PaidAmount}" id="exampleInputPassword1" placeholder="text" disabled>
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">Amount to be paid</label>
+    <input type="number" class="form-control" name="up" min="1" max="${data.data[i].DueAmount}" id="a" oninput="rs()" placeholder="Amount">
+  </div>
+                    
+<button   onclick="update(${data.data[i].Id},${data.data[i].DueAmount},${data.data[i].PaidAmount})" id="mybtn" type="button" disabled>PAY</button>
+</form>
+     `
+    document.getElementById('paste').innerHTML=html
+    d()
+    let e=document.getElementById('mybtn').disabled=false;
+    }  
+    })
+    }
+  function d(){
+  let c=document.getElementById('d').value
+  if(c==0){
+  document.getElementById('mybtn').disabled=true 
+  }
+
+}
+  
+function rs(){
+let b=document.getElementById('a').value
+let c=document.getElementById('d').value
+console.log(b);
+console.log(c);
+
+if(c==0||c=="-"){
+document.getElementById('mybtn').disabled=true 
+}
+if(parseFloat(b)> parseFloat(c)) {
+document.getElementById('mybtn').disabled=true
+}             
+
+}
+ 
+function update(id,due,paid) {
+let b=document.getElementById('a').value  
+if(b==""){
+    document.getElementById('mybtn').disabled=true 
+    }else{
+  let form=document.getElementById("myform")
+  let formdata= new FormData(form)
+  formdata.append('id',id)
+  formdata.append('paid',paid)
+  formdata.append('due',due)
+  let data=Object.fromEntries(formdata)
+  console.log(data)
+  
+  fetch(`/home/update`,{
+  method:'POST',
+  body:JSON.stringify(data),
+  headers: {
+  'Content-type': 'application/json; charset=UTF-8',
+  }
+    
+})
+
+  .then((res)=>res.json())
+  .then((data)=>{ 
+    console.log(data)
+    alert(data.message)  
+}
+  
+)} 
+}
+
+
+function logout(){
+  location.href ="http://localhost:3391/home/html"
+}
+</script>
+
+    <!-- Optional JavaScript -->
+<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.12.9/dist/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.0.0/dist/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+  </body>
+</html>
